@@ -1,0 +1,23 @@
+# Archivos de compilación
+bin/
+obj/
+
+# Base de datos local
+usuarios.db
+*.db-shm
+*.db-wal
+
+# Configuración de usuario o IDE
+*.user
+*.suo
+.vscode/
+*.swp
+*.DS_Store
+
+# Certificados y llaves locales
+*.pfx
+*.p12
+
+# Archivos temporales del sistema
+Thumbs.db
+ehthumbs.db
