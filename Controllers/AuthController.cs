@@ -6,79 +6,64 @@ namespace backend_github.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ClaveRequest
-{
-    public string clave { get; set; }
-}
-
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
 
-        // ------------------------------------------------------------
-        // Constructor: permite acceder a appsettings.json desde aquí
-        // ------------------------------------------------------------
         public AuthController(IConfiguration config)
         {
             _config = config;
         }
 
-        // ------------------------------------------------------------
-        // POST: /api/auth/verificar
-        // Recibe una contraseña, la compara con la correcta
-        // y si coincide, guarda la sesión para recordar al usuario.
-        // ------------------------------------------------------------
-[HttpPost("verificar")]
-public IActionResult Verificar([FromBody] ClaveRequest data)
-{
-    // 1. Obtiene la clave que el usuario escribió
-    string claveIngresada = data?.clave;
-
-    // 2. Lee la clave correcta desde appsettings.json
-    string claveCorrecta = _config["AppSettings:ClaveAcceso"];
-
-    // 3. Compara ambas
-    bool acceso = (claveIngresada == claveCorrecta);
-
-    // 4. Si es correcta, guarda un valor de sesión
-    if (acceso)
-    {
-        HttpContext.Session.SetString("autenticado", "true");
-    }
-
-    // 5. Devuelve el resultado al frontend
-    return Ok(new { acceso });
-}
-
-
-        // ------------------------------------------------------------
-        // GET: /api/auth/verificarSesion
-        // Sirve para que el frontend sepa si el usuario ya inició sesión.
-        // ------------------------------------------------------------
-        [HttpGet("verificarSesion")]
-        public IActionResult VerificarSesion()
+        // DTO que recibe el JSON { "clave": "..." } desde el frontend
+        public class ClaveRequest
         {
-            // Intenta leer la variable de sesión "autenticado"
-            var sesionActiva = HttpContext.Session.GetString("autenticado");
-
-            // Si existe y vale "true", la sesión está activa
-            bool autenticado = (sesionActiva == "true");
-
-            return Ok(new { autenticado });
+            public string? clave { get; set; }
         }
 
-        // ------------------------------------------------------------
+        // POST: /api/auth/verificar
+        // Recibe JSON y valida la contraseña
+        [HttpPost("verificar")]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        public IActionResult Verificar([FromBody] ClaveRequest data)
+        {
+            if (data == null || string.IsNullOrWhiteSpace(data.clave))
+            {
+                // Si no llegó JSON o faltó 'clave'
+                return BadRequest(new { error = "Falta la propiedad 'clave' en el cuerpo JSON." });
+            }
+
+            string claveIngresada = data.clave.Trim();
+            string claveCorrecta = _config["AppSettings:ClaveAcceso"] ?? "";
+
+            bool acceso = (claveIngresada == claveCorrecta);
+
+            if (acceso)
+            {
+                HttpContext.Session.SetString("autenticado", "true");
+            }
+
+            return new JsonResult(new { acceso });
+        }
+
+        // GET: /api/auth/verificarSesion
+        [HttpGet("verificarSesion")]
+        [Produces("application/json")]
+        public IActionResult VerificarSesion()
+        {
+            var sesionActiva = HttpContext.Session.GetString("autenticado");
+            bool autenticado = (sesionActiva == "true");
+            return new JsonResult(new { autenticado });
+        }
+
         // POST: /api/auth/salir
-        // Elimina la sesión actual (cerrar sesión)
-        // ------------------------------------------------------------
         [HttpPost("salir")]
+        [Produces("application/json")]
         public IActionResult Salir()
         {
-            // Limpia toda la información de la sesión actual
             HttpContext.Session.Clear();
-
-            // Devuelve confirmación al frontend
-            return Ok(new { mensaje = "Sesión cerrada" });
+            return new JsonResult(new { mensaje = "Sesión cerrada" });
         }
     }
 }

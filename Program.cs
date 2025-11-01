@@ -37,6 +37,16 @@ builder.Services.AddSession(options =>
 // Habilita el sistema de enrutamiento, necesario para mapear URLs a controladores.
 builder.Services.AddRouting();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
+
 // ------------------------------------------------------------
 // 3. Construir la aplicación con la configuración anterior
 // ------------------------------------------------------------
@@ -51,6 +61,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
+
+app.UseCors();
 
 // Habilita el uso de archivos estáticos (como HTML, CSS, JS, imágenes)
 // desde la carpeta wwwroot.
