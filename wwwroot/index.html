@@ -50,42 +50,68 @@
 
 <script>
   // ------------------------------------------------------------
-  // Función principal que se ejecuta cuando el usuario presiona el botón "Entrar"
+  // Función que verifica si el usuario ya tiene sesión activa.
+  // Si el backend responde "autenticado: true", muestra acceso directo.
+  // ------------------------------------------------------------
+  async function verificarSesion() {
+    try {
+      const res = await fetch('/api/auth/verificarSesion');
+      const data = await res.json();
+
+      const msg = document.getElementById('mensaje');
+
+      if (data.autenticado) {
+        // Si ya hay sesión activa, muestra mensaje y evita pedir la clave.
+        msg.textContent = "Ya tienes una sesión activa.";
+        msg.style.color = "green";
+
+        // Aquí podrías mostrar contenido, redirigir, etc.
+        document.getElementById('clave').style.display = "none";
+        document.querySelector('button').style.display = "none";
+      } else {
+        msg.textContent = "Introduce tu contraseña para continuar.";
+        msg.style.color = "black";
+      }
+    } catch (err) {
+      console.error("Error al verificar la sesión:", err);
+    }
+  }
+
+  // ------------------------------------------------------------
+  // Función que envía la contraseña al backend para verificarla.
+  // Si es correcta, se guarda la sesión en el servidor.
   // ------------------------------------------------------------
   async function verificar() {
-    // Obtiene el valor que el usuario escribió en el campo de contraseña
     const clave = document.getElementById('clave').value.trim();
 
-    // ------------------------------------------------------------
-    // Envía la contraseña al backend usando la ruta /api/auth/verificar
-    // ------------------------------------------------------------
-    // fetch() realiza una petición HTTP (tipo POST en este caso)
-    // hacia el backend (C#). El cuerpo de la petición se envía en formato JSON.
     const res = await fetch('/api/auth/verificar', {
-      method: 'POST',                       // método HTTP usado
-      headers: { 'Content-Type': 'application/json' }, // tipo de contenido
-      body: JSON.stringify({ clave })       // convierte el objeto { clave } en texto JSON
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clave })
     });
 
-    // Espera la respuesta del backend y la convierte a un objeto JavaScript
     const data = await res.json();
-
-    // Obtiene la referencia al elemento donde se mostrará el mensaje
     const msg = document.getElementById('mensaje');
 
-    // ------------------------------------------------------------
-    // Si el backend devuelve "acceso: true", muestra mensaje de éxito
-    // Si devuelve "acceso: false", muestra mensaje de error
-    // ------------------------------------------------------------
     if (data.acceso) {
-      msg.textContent = "✅ Acceso permitido"; // texto mostrado
-      msg.style.color = "green";               // color del texto
+      msg.textContent = "✅ Acceso permitido";
+      msg.style.color = "green";
+
+      // Oculta el formulario (ya no es necesario)
+      document.getElementById('clave').style.display = "none";
+      document.querySelector('button').style.display = "none";
     } else {
       msg.textContent = "❌ Clave incorrecta";
       msg.style.color = "red";
     }
   }
+
+  // ------------------------------------------------------------
+  // Llamar automáticamente a verificarSesion() cuando se carga la página.
+  // ------------------------------------------------------------
+  window.addEventListener('DOMContentLoaded', verificarSesion);
 </script>
+
 
 </body>
 </html>
