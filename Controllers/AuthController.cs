@@ -1,13 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 
 namespace backend_github.Controllers
 {
-    // ------------------------------------------------------------
-    // [ApiController]: indica que esta clase manejará peticiones HTTP tipo API.
-    // [Route("api/[controller]")]: define la ruta base. En este caso será:
-    // http://localhost:puerto/api/auth
-    // ------------------------------------------------------------
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -15,8 +11,7 @@ namespace backend_github.Controllers
         private readonly IConfiguration _config;
 
         // ------------------------------------------------------------
-        // Constructor: recibe la configuración del sistema (appsettings.json)
-        // para poder leer la clave que guardamos ahí.
+        // Constructor: permite acceder a appsettings.json desde aquí
         // ------------------------------------------------------------
         public AuthController(IConfiguration config)
         {
@@ -25,23 +20,60 @@ namespace backend_github.Controllers
 
         // ------------------------------------------------------------
         // POST: /api/auth/verificar
-        // Este método recibe una contraseña desde el frontend (index.html),
-        // la compara con la clave real del appsettings.json y devuelve si es válida.
+        // Recibe una contraseña, la compara con la correcta
+        // y si coincide, guarda la sesión para recordar al usuario.
         // ------------------------------------------------------------
         [HttpPost("verificar")]
         public IActionResult Verificar([FromBody] dynamic data)
         {
-            // Extrae el valor "clave" del cuerpo de la petición JSON
+            // 1. Obtiene la clave que el usuario escribió
             string claveIngresada = data?.clave;
 
-            // Obtiene la clave correcta desde appsettings.json
+            // 2. Lee la clave correcta desde appsettings.json
             string claveCorrecta = _config["AppSettings:ClaveAcceso"];
 
-            // Compara ambas claves (sensible a mayúsculas/minúsculas)
+            // 3. Compara ambas
             bool acceso = (claveIngresada == claveCorrecta);
 
-            // Devuelve la respuesta al frontend como JSON
+            // 4. Si es correcta, guarda un valor de sesión
+            if (acceso)
+            {
+                // Crea una variable de sesión llamada "autenticado"
+                HttpContext.Session.SetString("autenticado", "true");
+            }
+
+            // 5. Devuelve el resultado al frontend
             return Ok(new { acceso });
+        }
+
+        // ------------------------------------------------------------
+        // GET: /api/auth/verificarSesion
+        // Sirve para que el frontend sepa si el usuario ya inició sesión.
+        // ------------------------------------------------------------
+        [HttpGet("verificarSesion")]
+        public IActionResult VerificarSesion()
+        {
+            // Intenta leer la variable de sesión "autenticado"
+            var sesionActiva = HttpContext.Session.GetString("autenticado");
+
+            // Si existe y vale "true", la sesión está activa
+            bool autenticado = (sesionActiva == "true");
+
+            return Ok(new { autenticado });
+        }
+
+        // ------------------------------------------------------------
+        // POST: /api/auth/salir
+        // Elimina la sesión actual (cerrar sesión)
+        // ------------------------------------------------------------
+        [HttpPost("salir")]
+        public IActionResult Salir()
+        {
+            // Limpia toda la información de la sesión actual
+            HttpContext.Session.Clear();
+
+            // Devuelve confirmación al frontend
+            return Ok(new { mensaje = "Sesión cerrada" });
         }
     }
 }
