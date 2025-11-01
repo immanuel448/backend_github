@@ -48,26 +48,44 @@
   <button onclick="verificar()">Entrar</button>
   <div id="mensaje"></div>
 
-  <script>
-    async function verificar() {
-      const clave = document.getElementById('clave').value.trim();
-      const res = await fetch('/api/auth/verificar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clave })
-      });
+<script>
+  // ------------------------------------------------------------
+  // Función principal que se ejecuta cuando el usuario presiona el botón "Entrar"
+  // ------------------------------------------------------------
+  async function verificar() {
+    // Obtiene el valor que el usuario escribió en el campo de contraseña
+    const clave = document.getElementById('clave').value.trim();
 
-      const data = await res.json();
-      const msg = document.getElementById('mensaje');
+    // ------------------------------------------------------------
+    // Envía la contraseña al backend usando la ruta /api/auth/verificar
+    // ------------------------------------------------------------
+    // fetch() realiza una petición HTTP (tipo POST en este caso)
+    // hacia el backend (C#). El cuerpo de la petición se envía en formato JSON.
+    const res = await fetch('/api/auth/verificar', {
+      method: 'POST',                       // método HTTP usado
+      headers: { 'Content-Type': 'application/json' }, // tipo de contenido
+      body: JSON.stringify({ clave })       // convierte el objeto { clave } en texto JSON
+    });
 
-      if (data.acceso) {
-        msg.textContent = "✅ Acceso permitido";
-        msg.style.color = "green";
-      } else {
-        msg.textContent = "❌ Clave incorrecta";
-        msg.style.color = "red";
-      }
+    // Espera la respuesta del backend y la convierte a un objeto JavaScript
+    const data = await res.json();
+
+    // Obtiene la referencia al elemento donde se mostrará el mensaje
+    const msg = document.getElementById('mensaje');
+
+    // ------------------------------------------------------------
+    // Si el backend devuelve "acceso: true", muestra mensaje de éxito
+    // Si devuelve "acceso: false", muestra mensaje de error
+    // ------------------------------------------------------------
+    if (data.acceso) {
+      msg.textContent = "✅ Acceso permitido"; // texto mostrado
+      msg.style.color = "green";               // color del texto
+    } else {
+      msg.textContent = "❌ Clave incorrecta";
+      msg.style.color = "red";
     }
-  </script>
+  }
+</script>
+
 </body>
 </html>
