@@ -6,6 +6,11 @@ namespace backend_github.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    public class ClaveRequest
+{
+    public string clave { get; set; }
+}
+
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
@@ -23,28 +28,28 @@ namespace backend_github.Controllers
         // Recibe una contraseña, la compara con la correcta
         // y si coincide, guarda la sesión para recordar al usuario.
         // ------------------------------------------------------------
-        [HttpPost("verificar")]
-        public IActionResult Verificar([FromBody] dynamic data)
-        {
-            // 1. Obtiene la clave que el usuario escribió
-            string claveIngresada = data?.clave;
+[HttpPost("verificar")]
+public IActionResult Verificar([FromBody] ClaveRequest data)
+{
+    // 1. Obtiene la clave que el usuario escribió
+    string claveIngresada = data?.clave;
 
-            // 2. Lee la clave correcta desde appsettings.json
-            string claveCorrecta = _config["AppSettings:ClaveAcceso"];
+    // 2. Lee la clave correcta desde appsettings.json
+    string claveCorrecta = _config["AppSettings:ClaveAcceso"];
 
-            // 3. Compara ambas
-            bool acceso = (claveIngresada == claveCorrecta);
+    // 3. Compara ambas
+    bool acceso = (claveIngresada == claveCorrecta);
 
-            // 4. Si es correcta, guarda un valor de sesión
-            if (acceso)
-            {
-                // Crea una variable de sesión llamada "autenticado"
-                HttpContext.Session.SetString("autenticado", "true");
-            }
+    // 4. Si es correcta, guarda un valor de sesión
+    if (acceso)
+    {
+        HttpContext.Session.SetString("autenticado", "true");
+    }
 
-            // 5. Devuelve el resultado al frontend
-            return Ok(new { acceso });
-        }
+    // 5. Devuelve el resultado al frontend
+    return Ok(new { acceso });
+}
+
 
         // ------------------------------------------------------------
         // GET: /api/auth/verificarSesion
