@@ -1,6 +1,9 @@
+using backend_github.Data;
+using backend_github.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace backend_github.Controllers
 {
@@ -8,48 +11,52 @@ namespace backend_github.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly AppDbContext _context;
 
-        public AuthController(IConfiguration config)
+        public AuthController(AppDbContext context)
         {
-            _config = config;
+            _context = context;
         }
 
-        // DTO que recibe el JSON { "clave": "..." } desde el frontend
-        public class ClaveRequest
+        // 🔹 Clase para recibir el JSON del login
+        public class LoginRequest
         {
-            public string? clave { get; set; }
+            public string Correo { get; set; } = "";
+            public string Password { get; set; } = "";
         }
 
+        // ------------------------------------------------------------
         // POST: /api/auth/verificar
-        // Recibe JSON y valida la contraseña
+        // ------------------------------------------------------------
         [HttpPost("verificar")]
-        [Consumes("application/json")]
-        [Produces("application/json")]
-        public IActionResult Verificar([FromBody] ClaveRequest data)
+        public IActionResult Verificar([FromBody] LoginRequest data)
         {
-            if (data == null || string.IsNullOrWhiteSpace(data.clave))
-            {
-                // Si no llegó JSON o faltó 'clave'
-                return BadRequest(new { error = "Falta la propiedad 'clave' en el cuerpo JSON." });
-            }
+            // 1️⃣ Busca el usuario en la base por correo
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Correo == data.Correo);
 
-            string claveIngresada = data.clave.Trim();
-            string claveCorrecta = _config["AppSettings:ClaveAcceso"] ?? "";
+            if (usuario == null)
+                return new JsonResult(new { acceso = false, mensaje = "Usuario no encontrado" });
 
-            bool acceso = (claveIngresada == claveCorrecta);
+            // 2️⃣ Calcula el hash de la contraseña enviada (en minúsculas)
+            using var sha = SHA256.Create();
+            var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(data.Password));
+            var hashIngresado = BitConverter.ToString(hashBytes)
+                                            .Replace("-", "")
+                                            .ToLower(); // <-- forzamos minúsculas
+
+            // 3️⃣ Compara con el hash guardado
+            bool acceso = (hashIngresado == usuario.PasswordHash.ToLower());
 
             if (acceso)
-            {
                 HttpContext.Session.SetString("autenticado", "true");
-            }
 
             return new JsonResult(new { acceso });
         }
 
+        // ------------------------------------------------------------
         // GET: /api/auth/verificarSesion
+        // ------------------------------------------------------------
         [HttpGet("verificarSesion")]
-        [Produces("application/json")]
         public IActionResult VerificarSesion()
         {
             var sesionActiva = HttpContext.Session.GetString("autenticado");
@@ -57,9 +64,10 @@ namespace backend_github.Controllers
             return new JsonResult(new { autenticado });
         }
 
+        // ------------------------------------------------------------
         // POST: /api/auth/salir
+        // ------------------------------------------------------------
         [HttpPost("salir")]
-        [Produces("application/json")]
         public IActionResult Salir()
         {
             HttpContext.Session.Clear();

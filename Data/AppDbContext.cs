@@ -1,5 +1,7 @@
 using backend_github.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace backend_github.Data
 {
@@ -9,5 +11,37 @@ namespace backend_github.Data
             : base(options) { }
 
         public DbSet<Usuario> Usuarios { get; set; }
+
+        // 🔹 Se ejecuta automáticamente al crear el modelo
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Función local para crear hash
+            string Hash(string input)
+            {
+                using var sha = SHA256.Create();
+                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
+                return BitConverter.ToString(bytes).Replace("-", "").ToLower();
+            }
+
+            // 🔹 Carga inicial de usuarios (estáticos)
+            modelBuilder.Entity<Usuario>().HasData(
+                new Usuario
+                {
+                    Id = 1,
+                    Nombre = "Administrador",
+                    Correo = "admin@historia.com",
+                    PasswordHash = Hash("clave123")
+                },
+                new Usuario
+                {
+                    Id = 2,
+                    Nombre = "Invitado",
+                    Correo = "invitado@historia.com",
+                    PasswordHash = Hash("hola2025")
+                }
+            );
+        }
     }
 }
