@@ -18,34 +18,27 @@ namespace backend_github.Controllers
             _context = context;
         }
 
-        // 🔹 Clase para recibir el JSON del login
-        public class LoginRequest
+        // 🔹 Clase para recibir la clave
+        public class ClaveRequest
         {
-            public string Correo { get; set; } = "";
-            public string Password { get; set; } = "";
+            public string clave { get; set; } = "";
         }
 
         // ------------------------------------------------------------
         // POST: /api/auth/verificar
         // ------------------------------------------------------------
         [HttpPost("verificar")]
-        public IActionResult Verificar([FromBody] LoginRequest data)
+        public IActionResult Verificar([FromBody] ClaveRequest data)
         {
-            // 1️⃣ Busca el usuario en la base por correo
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Correo == data.Correo);
+            string claveIngresada = data.clave.Trim();
 
-            if (usuario == null)
-                return new JsonResult(new { acceso = false, mensaje = "Usuario no encontrado" });
-
-            // 2️⃣ Calcula el hash de la contraseña enviada (en minúsculas)
+            // Calcula el hash de la clave ingresada
             using var sha = SHA256.Create();
-            var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(data.Password));
-            var hashIngresado = BitConverter.ToString(hashBytes)
-                                            .Replace("-", "")
-                                            .ToLower(); // <-- forzamos minúsculas
+            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(claveIngresada));
+            var hashIngresado = BitConverter.ToString(bytes).Replace("-", "").ToLower();
 
-            // 3️⃣ Compara con el hash guardado
-            bool acceso = (hashIngresado == usuario.PasswordHash.ToLower());
+            // Busca si existe algún usuario con ese hash
+            bool acceso = _context.Usuarios.Any(u => u.PasswordHash.ToLower() == hashIngresado);
 
             if (acceso)
                 HttpContext.Session.SetString("autenticado", "true");
