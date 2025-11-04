@@ -7,11 +7,15 @@ using Microsoft.Extensions.Hosting;
 // Crear builder
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar EF Core con SQLite
+// ------------------------------------------------------------
+// 1️⃣ Configurar EF Core con SQLite
+// ------------------------------------------------------------
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=usuarios.db"));
 
-// Controladores + Sesiones
+// ------------------------------------------------------------
+// 2️⃣ Controladores + Sesiones
+// ------------------------------------------------------------
 builder.Services.AddControllers();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -19,10 +23,17 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+
+    // 🔹 Necesario para sesiones entre dominios (localhost:5500 y backend)
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 });
 
 builder.Services.AddRouting();
 
+// ------------------------------------------------------------
+// 3️⃣ CORS (permitir al frontend acceder al backend)
+// ------------------------------------------------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirFrontend",
@@ -34,22 +45,30 @@ builder.Services.AddCors(options =>
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowCredentials(); // 🔹 Necesario para cookies de sesión
         });
 });
 
-
+// ------------------------------------------------------------
+// 4️⃣ Construcción del app
+// ------------------------------------------------------------
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 
+// ------------------------------------------------------------
+// 5️⃣ Middleware
+// ------------------------------------------------------------
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("PermitirFrontend");
-app.UseSession();
+app.UseSession(); // 🔹 Importante: antes de MapControllers
 app.MapControllers();
 
+// ------------------------------------------------------------
+// 6️⃣ Ruta de prueba
+// ------------------------------------------------------------
 app.MapGet("/", () => "Servidor con EFCore y SQLite funcionando");
 
 app.Run();

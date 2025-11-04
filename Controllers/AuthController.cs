@@ -1,7 +1,6 @@
 using backend_github.Data;
 using backend_github.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -18,7 +17,7 @@ namespace backend_github.Controllers
             _context = context;
         }
 
-        // 🔹 Clase para recibir la clave
+        // 🔹 Modelo para recibir el JSON
         public class ClaveRequest
         {
             public string clave { get; set; } = "";
@@ -32,16 +31,19 @@ namespace backend_github.Controllers
         {
             string claveIngresada = data.clave.Trim();
 
-            // Calcula el hash de la clave ingresada
+            // Calcular hash SHA256
             using var sha = SHA256.Create();
             var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(claveIngresada));
             var hashIngresado = BitConverter.ToString(bytes).Replace("-", "").ToLower();
 
-            // Busca si existe algún usuario con ese hash
+            // Buscar si existe usuario con ese hash
             bool acceso = _context.Usuarios.Any(u => u.PasswordHash.ToLower() == hashIngresado);
 
             if (acceso)
+            {
+                // Guardar sesión
                 HttpContext.Session.SetString("autenticado", "true");
+            }
 
             return new JsonResult(new { acceso });
         }
