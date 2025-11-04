@@ -23,10 +23,8 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-
-    // 🔹 Necesario para sesiones entre dominios (localhost:5500 y backend)
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // 🔹 Permite cookies sin HTTPS
+    options.Cookie.SameSite = SameSiteMode.Lax;            // 🔹 Evita el rechazo en localhost
 });
 
 builder.Services.AddRouting();
