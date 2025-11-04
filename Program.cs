@@ -23,6 +23,22 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddRouting();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirFrontend",
+        policy =>
+        {
+            policy.WithOrigins(
+                "http://127.0.0.1:5500",
+                "http://localhost:5500"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+        });
+});
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -30,6 +46,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("PermitirFrontend");
 app.UseSession();
 app.MapControllers();
 
