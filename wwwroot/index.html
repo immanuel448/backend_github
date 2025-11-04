@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<!-- prueba de conexión lunes 03-->
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prueba de Acceso</title>
+  <title>Acceso - Historieta Demo</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -15,6 +14,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      text-align: center;
     }
     img {
       width: 220px;
@@ -41,78 +41,130 @@
       margin-top: 20px;
       font-weight: 600;
     }
+    #enlaces {
+      margin-top: 30px;
+      display: none;
+    }
+    #enlaces a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    #cerrar-sesion {
+      margin-top: 40px;
+      cursor: pointer;
+      color: crimson;
+      display: none;
+    }
   </style>
 </head>
+
 <body>
   <img src="https://picsum.photos/220" alt="Imagen de prueba" />
-  <input type="password" id="clave" placeholder="Introduce la contraseña" />
-  <button onclick="verificar()">Entrar</button>
+  
+  <div id="login">
+    <input type="password" id="clave" placeholder="Introduce la contraseña" />
+    <button id="btnEntrar">Entrar</button>
+  </div>
+
   <div id="mensaje"></div>
 
-<script>
-  // ------------------------------------------------------------
-  // Función que verifica si el usuario ya tiene sesión activa.
-  // Si el backend responde "autenticado: true", muestra acceso directo.
-  // ------------------------------------------------------------
-  async function verificarSesion() {
-    try {
-      const res = await fetch('/api/auth/verificarSesion');
-      const data = await res.json();
+  <div id="enlaces">
+    <a href="cap1.html">Ir al Capítulo 1</a>
+    <a href="cap2.html">Ir al Capítulo 2</a>
+  </div>
 
-      const msg = document.getElementById('mensaje');
+  <div id="cerrar-sesion">Cerrar sesión</div>
 
-      if (data.autenticado) {
-        // Si ya hay sesión activa, muestra mensaje y evita pedir la clave.
-        msg.textContent = "Ya tienes una sesión activa.";
-        msg.style.color = "green";
+  <script>
+    const msg = document.getElementById('mensaje');
+    const enlaces = document.getElementById('enlaces');
+    const loginDiv = document.getElementById('login');
+    const btnLogout = document.getElementById('cerrar-sesion');
 
-        // Aquí podrías mostrar contenido, redirigir, etc.
-        document.getElementById('clave').style.display = "none";
-        document.querySelector('button').style.display = "none";
-      } else {
-        msg.textContent = "Introduce tu contraseña para continuar.";
-        msg.style.color = "black";
+    // -----------------------------------------------
+    // Verifica si ya hay sesión activa
+    // -----------------------------------------------
+    async function verificarSesion() {
+      try {
+        const res = await fetch('/api/auth/verificarSesion');
+        const data = await res.json();
+        if (data.autenticado) {
+          mostrarContenido();
+        } else {
+          mostrarLogin();
+        }
+      } catch (err) {
+        console.error("Error al verificar sesión:", err);
+        msg.textContent = "⚠️ Error de conexión con el servidor.";
+        msg.style.color = "red";
       }
-    } catch (err) {
-      console.error("Error al verificar la sesión:", err);
     }
-  }
 
-  // ------------------------------------------------------------
-  // Función que envía la contraseña al backend para verificarla.
-  // Si es correcta, se guarda la sesión en el servidor.
-  // ------------------------------------------------------------
-  async function verificar() {
-    const clave = document.getElementById('clave').value.trim();
+    // -----------------------------------------------
+    // Envío de contraseña
+    // -----------------------------------------------
+    async function verificar() {
+      const clave = document.getElementById('clave').value.trim();
+      if (!clave) {
+        msg.textContent = "Introduce la contraseña.";
+        msg.style.color = "red";
+        return;
+      }
 
-    const res = await fetch('/api/auth/verificar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clave })
+      try {
+        const res = await fetch('/api/auth/verificar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clave })
+        });
+        const data = await res.json();
+
+        if (data.acceso) {
+          msg.textContent = "✅ Acceso permitido";
+          msg.style.color = "green";
+          mostrarContenido();
+        } else {
+          msg.textContent = "❌ Clave incorrecta";
+          msg.style.color = "red";
+        }
+      } catch (err) {
+        console.error("Error al verificar clave:", err);
+        msg.textContent = "⚠️ Error al conectar con el servidor.";
+        msg.style.color = "red";
+      }
+    }
+
+    // -----------------------------------------------
+    // Funciones visuales
+    // -----------------------------------------------
+    function mostrarLogin() {
+      loginDiv.style.display = "block";
+      enlaces.style.display = "none";
+      btnLogout.style.display = "none";
+    }
+
+    function mostrarContenido() {
+      loginDiv.style.display = "none";
+      enlaces.style.display = "block";
+      btnLogout.style.display = "block";
+      msg.textContent = "Acceso activo.";
+      msg.style.color = "green";
+    }
+
+    // -----------------------------------------------
+    // Cerrar sesión
+    // -----------------------------------------------
+    btnLogout.addEventListener('click', async () => {
+      await fetch('/api/auth/salir', { method: 'POST' });
+      mostrarLogin();
+      msg.textContent = "Sesión cerrada.";
+      msg.style.color = "black";
     });
 
-    const data = await res.json();
-    const msg = document.getElementById('mensaje');
-
-    if (data.acceso) {
-      msg.textContent = "✅ Acceso permitido";
-      msg.style.color = "green";
-
-      // Oculta el formulario (ya no es necesario)
-      document.getElementById('clave').style.display = "none";
-      document.querySelector('button').style.display = "none";
-    } else {
-      msg.textContent = "❌ Clave incorrecta";
-      msg.style.color = "red";
-    }
-  }
-
-  // ------------------------------------------------------------
-  // Llamar automáticamente a verificarSesion() cuando se carga la página.
-  // ------------------------------------------------------------
-  window.addEventListener('DOMContentLoaded', verificarSesion);
-</script>
-
-
+    document.getElementById('btnEntrar').addEventListener('click', verificar);
+    window.addEventListener('DOMContentLoaded', verificarSesion);
+  </script>
 </body>
 </html>
