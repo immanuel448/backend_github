@@ -1,14 +1,17 @@
 backend_github/
 │
+├── Controllers/
+├── Data/
+├── Models/
+├── Migrations/
+├── wwwroot/
+│   ├── index.html
+│   ├── cap1.html
+│   ├── cap2.html
+│   ├── js/
+│   │   └── acceso.js
+│   ├── css/
+│   └── assets/
+│
 ├── Program.cs
-├── appsettings.json
-├── /Controllers/
-│   └── AuthController.cs
-├── /Data/
-│   └── AppDbContext.cs
-├── /Models/
-│   └── Usuario.cs
-└── /wwwroot/
-    └── index.html   ← página simple de prueba
-git config --list
-index.html
+└── usuarios.db
