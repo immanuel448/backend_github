@@ -1,0 +1,28 @@
+backend_github/
+│
+├── wwwroot/
+│   ├── acceso.html
+│   ├── js/
+│   │   └── acceso.js  ← si quieres centralizar scripts después
+│   ├── css/
+│   │   └── estilos.css
+│   └── assets/
+│       ├── img/
+│       │   ├── cap1/dia1.webp
+│       │   └── cap2/dia2.webp
+│       └── audio/
+│           └── intro.mp3
+│
+├── PagesProtegidas/
+│   ├── index.html
+│   ├── cap1.html
+│   └── cap2.html
+│
+├── Controllers/
+│   └── AuthController.cs
+├── Data/
+│   └── AppDbContext.cs
+├── Models/
+│   └── Usuario.cs
+├── usuarios.db
+└── Program.cs
