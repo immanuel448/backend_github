@@ -1,6 +1,3 @@
-// ------------------------------------------------------------
-// Program.cs
-// ------------------------------------------------------------
 using backend_github.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
@@ -9,11 +6,15 @@ using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1️⃣ Base de datos SQLite + EF Core
+// ------------------------------------------------------------
+// 1️⃣ Configurar SQLite y EF Core
+// ------------------------------------------------------------
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=usuarios.db"));
 
-// 2️⃣ Controladores + Sesiones
+// ------------------------------------------------------------
+// 2️⃣ Controladores + Sesión
+// ------------------------------------------------------------
 builder.Services.AddControllers();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -21,20 +22,26 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Permite sin HTTPS
-    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // 🔹 Permite cookies sin HTTPS (localhost)
+    options.Cookie.SameSite = SameSiteMode.Lax;            // 🔹 Evita el rechazo del navegador
 });
 
-// 3️⃣ CORS (solo si alguna vez lo usas con otro frontend)
+// ------------------------------------------------------------
+// 3️⃣ CORS (para compatibilidad con front antiguo, pero ya no se usa Live Server)
+// ------------------------------------------------------------
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("PermitirFrontend", policy =>
-    {
-        policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
+    options.AddPolicy("PermitirFrontend",
+        policy =>
+        {
+            policy.WithOrigins(
+                "http://127.0.0.1:5500",
+                "http://localhost:5500"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+        });
 });
 
 var app = builder.Build();
@@ -42,39 +49,44 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 
+// ------------------------------------------------------------
 // 4️⃣ Middleware base
-app.UseStaticFiles(); // Sirve acceso.html, css, js, assets
+// ------------------------------------------------------------
+app.UseStaticFiles();          // Sirve acceso.html, js, css, assets
 app.UseRouting();
 app.UseCors("PermitirFrontend");
 app.UseSession();
 
-// 5️⃣ Middleware de protección general
+// ------------------------------------------------------------
+// 5️⃣ Middleware de seguridad (bloquea acceso sin sesión)
+// ------------------------------------------------------------
 app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value?.ToLower();
 
-    // Archivos y rutas públicas
+    // Archivos siempre accesibles (sin login)
     if (path == "/" ||
         path.Contains("/api/") ||
         path.Contains("acceso.html") ||
-        path.EndsWith(".js") ||
-        path.EndsWith(".css") ||
-        path.EndsWith(".png") ||
-        path.EndsWith(".jpg") ||
-        path.EndsWith(".webp") ||
-        path.EndsWith(".ico") ||
-        path.EndsWith(".mp3") ||
-        path.EndsWith(".wav"))
+        path.Contains(".js") ||
+        path.Contains(".css") ||
+        path.Contains(".png") ||
+        path.Contains(".jpg") ||
+        path.Contains(".webp") ||
+        path.Contains(".ico") ||
+        path.Contains(".mp3") ||
+        path.Contains(".wav"))
     {
         await next();
         return;
     }
 
-    // Verificación de sesión
+    // Verificar si hay sesión activa
     var sesion = context.Session.GetString("autenticado");
+
     if (sesion == "true")
     {
-        // Evita contenido cacheado (impide volver atrás)
+        // Evitar caché (para impedir ver al presionar “Atrás”)
         context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
         context.Response.Headers["Pragma"] = "no-cache";
         context.Response.Headers["Expires"] = "0";
@@ -86,13 +98,17 @@ app.Use(async (context, next) =>
     }
 });
 
-// 6️⃣ Controladores de API
+// ------------------------------------------------------------
+// 6️⃣ Rutas de la API
+// ------------------------------------------------------------
 app.MapControllers();
 
-// 7️⃣ Rutas protegidas (HTML de PagesProtegidas)
-string paginasProtegidas = Path.Combine(app.Environment.ContentRootPath, "PagesProtegidas");
+// ------------------------------------------------------------
+// 7️⃣ Rutas de contenido protegido
+// ------------------------------------------------------------
 
-async Task ProtegerPagina(HttpContext context, string archivo)
+// Página principal (portada real)
+app.MapGet("/index.html", async context =>
 {
     var sesion = context.Session.GetString("autenticado");
     if (sesion != "true")
@@ -105,14 +121,46 @@ async Task ProtegerPagina(HttpContext context, string archivo)
     context.Response.Headers["Pragma"] = "no-cache";
     context.Response.Headers["Expires"] = "0";
 
-    await context.Response.SendFileAsync(Path.Combine(paginasProtegidas, archivo));
-}
+    await context.Response.SendFileAsync("PagesProtegidas/index.html");
+});
 
-app.MapGet("/index.html", ctx => ProtegerPagina(ctx, "index.html"));
-app.MapGet("/cap1.html", ctx => ProtegerPagina(ctx, "cap1.html"));
-app.MapGet("/cap2.html", ctx => ProtegerPagina(ctx, "cap2.html"));
+// Capítulo 1
+app.MapGet("/cap1.html", async context =>
+{
+    var sesion = context.Session.GetString("autenticado");
+    if (sesion != "true")
+    {
+        context.Response.Redirect("/acceso.html");
+        return;
+    }
 
-// 8️⃣ Ruta raíz
-app.MapGet("/", () => "Servidor con EFCore y SQLite funcionando correctamente");
+    context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+    context.Response.Headers["Pragma"] = "no-cache";
+    context.Response.Headers["Expires"] = "0";
+
+    await context.Response.SendFileAsync("PagesProtegidas/cap1.html");
+});
+
+// Capítulo 2
+app.MapGet("/cap2.html", async context =>
+{
+    var sesion = context.Session.GetString("autenticado");
+    if (sesion != "true")
+    {
+        context.Response.Redirect("/acceso.html");
+        return;
+    }
+
+    context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+    context.Response.Headers["Pragma"] = "no-cache";
+    context.Response.Headers["Expires"] = "0";
+
+    await context.Response.SendFileAsync("PagesProtegidas/cap2.html");
+});
+
+// ------------------------------------------------------------
+// 8️⃣ Ruta raíz (texto de diagnóstico opcional)
+// ------------------------------------------------------------
+app.MapGet("/", () => "Servidor con EFCore y SQLite funcionando correctamente 🔒");
 
 app.Run();
