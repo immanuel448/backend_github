@@ -1,23 +1,81 @@
-# Archivos de compilación
+# =====================================
+# ARCHIVOS DE COMPILACIÓN Y BUILD
+# =====================================
 bin/
 obj/
+out/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
 
-# Base de datos local
+# =====================================
+# BASES DE DATOS LOCALES
+# =====================================
 usuarios.db
+*.db
 *.db-shm
 *.db-wal
 
-# Configuración de usuario o IDE
+# =====================================
+# CONFIGURACIÓN DE USUARIO / IDE
+# =====================================
+.vs/
+.vscode/
+.idea/
 *.user
 *.suo
-.vscode/
+*.userosscache
+*.sln.docstates
+
+# =====================================
+# ARCHIVOS TEMPORALES O DE SISTEMA
+# =====================================
 *.swp
-*.DS_Store
-
-# Certificados y llaves locales
-*.pfx
-*.p12
-
-# Archivos temporales del sistema
+*.bak
+*.tmp
+*.temp
+*.log
 Thumbs.db
 ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# =====================================
+# CERTIFICADOS Y CLAVES LOCALES
+# =====================================
+*.pfx
+*.p12
+*.key
+*.pem
+*.crt
+
+# =====================================
+# PUBLICACIONES Y ARCHIVOS GENERADOS
+# =====================================
+publish/
+wwwroot/dist/
+wwwroot/node_modules/
+node_modules/
+
+# =====================================
+# ARCHIVOS DE ENTORNO Y CONFIGURACIÓN LOCAL
+# =====================================
+.env
+appsettings.Development.json
+launchSettings.json
+
+# =====================================
+# COPIAS AUTOMÁTICAS O TEMPORALES DE VISUAL STUDIO
+# =====================================
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.ipdb
+*.tlog
+*.lastbuildstate
