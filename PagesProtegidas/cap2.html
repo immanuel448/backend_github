@@ -12,22 +12,7 @@
   <a href="cap1.html">Ir al Capítulo 1</a>
   
   <div id="cerrar-sesion" style="margin-top:50px; cursor:pointer; color:red;">Cerrar sesión</div>
-  <script src="js/acceso.js"></script>
+  <script src="/js/acceso.js"></script>
 
-  <script>
-  // Evita volver atrás
-  window.history.pushState(null, "", window.location.href);
-  window.onpopstate = function() {
-    window.history.pushState(null, "", window.location.href);
-  };
-
-  // Cerrar sesión correctamente
-  document.getElementById("cerrar-sesion").addEventListener("click", async () => {
-    await fetch("/api/auth/salir", { method: "POST" });
-    sessionStorage.clear();
-    localStorage.clear();
-    window.location.replace("acceso.html");
-  });
-</script>
 </body>
 </html>

@@ -63,22 +63,7 @@
     - Si cierra sesión y presiona “Atrás”, la página no se mostrará (por los headers no-cache).
   -->
 
-<script>
-  // Evita volver atrás
-  window.history.pushState(null, "", window.location.href);
-  window.onpopstate = function() {
-    window.history.pushState(null, "", window.location.href);
-  };
-
-  // Cerrar sesión correctamente
-  document.getElementById("cerrar-sesion").addEventListener("click", async () => {
-    await fetch("/api/auth/salir", { method: "POST" });
-    sessionStorage.clear();
-    localStorage.clear();
-    window.location.replace("acceso.html");
-  });
-</script>
-
+<script src="/js/acceso.js"></script>
 
 </body>
 </html>
