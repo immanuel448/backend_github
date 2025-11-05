@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Capítulo 1</title>
+</head>
+<body style="background:#e6f0ff; text-align:center; padding-top:100px;">
+  <h1>Capítulo 1</h1>
+  <p>Contenido de prueba.</p>
+
+  <a href="index.html">Volver al inicio</a> |
+  <a href="cap2.html">Ir al Capítulo 2</a>
+
+  <div id="cerrar-sesion" style="margin-top:50px; cursor:pointer; color:red;">Cerrar sesión</div>
+
+  <!-- 
+    ⚙️ PROTECCIÓN REAL:
+    Este archivo (cap1.html) está protegido por el backend en Program.cs.
+
+    En concreto, el middleware del servidor:
+    ---------------------------------------------------
+    app.Use(async (context, next) =>
+    {
+        var path = context.Request.Path.Value?.ToLower();
+
+        // Permite libre acceso solo a acceso.html, API, imágenes, JS y CSS
+        if (path == "/" ||
+            path.Contains("/api/") ||
+            path.Contains("acceso.html") ||
+            path.Contains(".js") ||
+            path.Contains(".css") ||
+            path.Contains(".png") ||
+            path.Contains(".jpg") ||
+            path.Contains(".webp") ||
+            path.Contains(".ico"))
+        {
+            await next();
+            return;
+        }
+
+        // Si no hay sesión activa -> redirige automáticamente
+        var sesion = context.Session.GetString("autenticado");
+        if (sesion == "true")
+        {
+            // Se evita el caché del navegador (para que no se pueda ver al volver atrás)
+            context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+            context.Response.Headers["Pragma"] = "no-cache";
+            context.Response.Headers["Expires"] = "0";
+
+            await next();
+        }
+        else
+        {
+            context.Response.Redirect("/acceso.html");
+        }
+    });
+    ---------------------------------------------------
+
+    🔹 Por lo tanto:
+    - Si el usuario no ha iniciado sesión, el backend no le entrega este HTML.
+    - Si intenta entrar directo (por URL o inspección), el servidor lo redirige al acceso.
+    - Si cierra sesión y presiona “Atrás”, la página no se mostrará (por los headers no-cache).
+  -->
+
+<script>
+  // Evita volver atrás
+  window.history.pushState(null, "", window.location.href);
+  window.onpopstate = function() {
+    window.history.pushState(null, "", window.location.href);
+  };
+
+  // Cerrar sesión correctamente
+  document.getElementById("cerrar-sesion").addEventListener("click", async () => {
+    await fetch("/api/auth/salir", { method: "POST" });
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.replace("acceso.html");
+  });
+</script>
+
+
+</body>
+</html>

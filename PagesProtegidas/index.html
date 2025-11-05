@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Una Historia Simple?</title>
+  <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+  <main class="contenedor">
+    <h1>Una Historia Simple?</h1>
+    <p>Selecciona un capítulo:</p>
+
+    <section class="capitulos-lista">
+      <article>
+        <a href="cap1.html">
+          <img src="../assets/img/cap1/dia1.webp" alt="Capítulo 1">
+          <h2>Primer encuentro | Dopamina</h2>
+        </a>
+      </article>
+      <article>
+        <a href="cap2.html">
+          <img src="../assets/img/cap2/dia2.webp" alt="Capítulo 2">
+          <h2>Segundo encuentro | Presencia</h2>
+        </a>
+      </article>
+    </section>
+
+    <button id="cerrar-sesion" style="margin-top:40px;">Cerrar sesión</button>
+  </main>
+
+  <footer>
+    <p>© 2025 Una Historia Simple? | Diseñado por EML</p>
+  </footer>
+
+<script>
+  // Evita volver atrás
+  window.history.pushState(null, "", window.location.href);
+  window.onpopstate = function() {
+    window.history.pushState(null, "", window.location.href);
+  };
+
+  // Cerrar sesión correctamente
+  document.getElementById("cerrar-sesion").addEventListener("click", async () => {
+    await fetch("/api/auth/salir", { method: "POST" });
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.replace("/acceso.html");
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acceso - Una Historia Simple?</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(135deg, #cfd9df, #e2ebf0);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    img {
+      width: 200px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,.2);
+    }
+    input, button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #aaa;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #1e4ed8;
+    }
+    #mensaje {
+      margin-top: 15px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <img src="https://picsum.photos/200" alt="Logo o imagen de acceso" />
+
+  <div id="form">
+    <input type="password" id="clave" placeholder="Introduce la contraseña" />
+    <button id="btnEntrar">Entrar</button>
+    <div id="mensaje"></div>
+  </div>
+
+  <script>
+    async function verificar() {
+      const clave = document.getElementById('clave').value.trim();
+      const msg = document.getElementById('mensaje');
+
+      if (!clave) {
+        msg.textContent = "Introduce la contraseña.";
+        msg.style.color = "red";
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/verificar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clave })
+        });
+        const data = await res.json();
+
+        if (data.acceso) {
+          msg.textContent = "✅ Acceso permitido";
+          msg.style.color = "green";
+          setTimeout(() => window.location.href = "index.html", 700);
+        } else {
+          msg.textContent = "❌ Clave incorrecta";
+          msg.style.color = "red";
+        }
+      } catch (err) {
+        console.error("Error al verificar clave:", err);
+        msg.textContent = "⚠️ Error al conectar con el servidor.";
+        msg.style.color = "red";
+      }
+    }
+
+    document.getElementById('btnEntrar').addEventListener('click', verificar);
+  </script>
+</body>
+</html>
