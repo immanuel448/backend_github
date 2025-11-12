@@ -1,55 +1,55 @@
-🛡️ backend_github (.NET)
+# 🛡️ backend_github (.NET)
 
-Sistema de autenticación seguro en ASP.NET Core + SQLite, diseñado para manejar acceso por contraseña, sesiones persistentes y protección de páginas privadas.
+**Sistema de autenticación seguro en ASP.NET Core + SQLite**, diseñado para manejar acceso por contraseña, sesiones persistentes y protección de páginas privadas.  
 
-Desarrollado como backend independiente del proyecto “Una Historia Simple?”, pero adaptable a cualquier aplicación que requiera control de acceso por sesión.
+Desarrollado como backend independiente del proyecto **“Una Historia Simple?”**, pero adaptable a cualquier aplicación que requiera control de acceso por sesión.
 
-⚙️ CARACTERÍSTICAS PRINCIPALES
+---
 
-Inicio de sesión mediante contraseñas hasheadas (SHA256).
+## ⚙️ CARACTERÍSTICAS PRINCIPALES
 
-Base de datos local SQLite gestionada con Entity Framework Core.
+- Inicio de sesión mediante contraseñas **hasheadas (SHA256)**.  
+- Base de datos local **SQLite** gestionada con **Entity Framework Core**.  
+- **Sesión persistente** (no pide contraseña al cambiar de página).  
+- **Middleware** que bloquea el acceso sin autenticación.  
+- **Prevención de caché** al presionar “Atrás” tras cerrar sesión.  
+- Listo para integrarse con cualquier **frontend (HTML, JS, etc.)**.  
+- Ideal para despliegue en **Render, Railway o servidores locales**.
 
-Sesión persistente (no pide contraseña al cambiar de página).
+---
 
-Middleware que bloquea el acceso sin autenticación.
-
-Prevención de caché al presionar “Atrás” tras cerrar sesión.
-
-Listo para integrarse con cualquier frontend (HTML, JS, etc.).
-
-Ideal para despliegue en Render, Railway o servidores locales.
-
-📂 ESTRUCTURA DEL PROYECTO
-
+## 📂 ESTRUCTURA DEL PROYECTO
+```text
 backend_github/
 │
 ├── Controllers/
-│ └── AuthController.cs # Controlador principal de autenticación
+│   └── AuthController.cs          # Controlador principal de autenticación
 │
 ├── Data/
-│ └── AppDbContext.cs # Configuración de EF Core + datos iniciales
+│   └── AppDbContext.cs            # Configuración de EF Core + datos iniciales
 │
 ├── Models/
-│ └── Usuario.cs # Entidad base (Id, Nombre, Correo, Hash)
+│   └── Usuario.cs                 # Entidad base (Id, Nombre, Correo, Hash)
 │
-├── Migrations/ # Archivos generados por EF Core
+├── Migrations/                    # Archivos generados por EF Core
 │
-├── PagesProtegidas/ # Archivos HTML protegidos (ejemplo)
-│ ├── index.html
-│ ├── cap1.html
-│ └── cap2.html
+├── PagesProtegidas/               # Archivos HTML protegidos (ejemplo)
+│   ├── index.html
+│   ├── cap1.html
+│   └── cap2.html
 │
-├── wwwroot/ # Contenido público (login, JS, CSS, imágenes)
-│ ├── acceso.html
-│ ├── js/
-│ ├── css/
-│ └── assets/
+├── wwwroot/                       # Contenido público (login, JS, CSS, imágenes)
+│   ├── acceso.html
+│   ├── js/
+│   ├── css/
+│   └── assets/
 │
-├── usuarios.db # Base de datos SQLite local
+├── usuarios.db                    # Base de datos SQLite local
 │
-├── Program.cs # Configuración del servidor y middleware
+├── Program.cs                     # Configuración del servidor y middleware
+│
 └── README.md
+
 
 💡 FUNCIONAMIENTO
 
